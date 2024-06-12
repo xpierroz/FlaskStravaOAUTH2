@@ -106,16 +106,12 @@ def oauth2_callback(provider):
     # make sure that the state parameter matches the one we created in the
     # authorization request
     if request.args['state'] != session.get('oauth2_state'):
-        print("109")
         abort(401)
 
     # make sure that the authorization code is present
     if 'code' not in request.args:
-        print("113")
         abort(401)
-    print("passed 116")
     # exchange the authorization code for an access token
-    print(provider_data['token_url'])
     response = requests.post(provider_data['token_url'], data={
         'client_id': provider_data['client_id'],
         'client_secret': provider_data['client_secret'],
@@ -125,23 +121,18 @@ def oauth2_callback(provider):
                                 _external=True),
     }, headers={'Accept': 'application/json'})
     if response.status_code != 200:
-        print(response.text)
         abort(401)
     oauth2_token = response.json().get('access_token')
     if not oauth2_token:
         abort(401)
-    print("passed 132")
     # use the access token to get the user's email address
     response = requests.get(provider_data['userinfo']['url'], headers={
         'Authorization': 'Bearer ' + oauth2_token,
         'Accept': 'application/json',
     })
     if response.status_code != 200:
-        print(response.text)
         abort(401)
 
-    print(response.text)
-    print(provider_data)
     firstname = provider_data['userinfo']['firstname'](response.json())
 
     # find or create the user in the database
